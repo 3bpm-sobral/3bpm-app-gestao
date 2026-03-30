@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-3BPM GESTÃO</title>
+    
+    <link rel="manifest" href="manifest-gestao.json">
+    <meta name="theme-color" content="#0044cc">
+
+    <link rel="apple-touch-icon" href="icon-gestao-192.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="3BPM GESTÃO">
+
+    <style>
+        body { 
+            background-color: #050505; 
+            color: white; 
+            text-align: center; 
+            margin-top: 50px; 
+            font-family: sans-serif; 
+            padding: 20px;
+        }
+        #btnInstall { 
+            display: none; 
+            padding: 15px 30px; 
+            font-size: 18px; 
+            background-color: #d32f2f; /* Cor diferente para gestão (opcional) */
+            color: white; 
+            border: none; 
+            border-radius: 8px; 
+            cursor: pointer;
+            font-weight: bold;
+        }
+        #ios-notice {
+            display: none; 
+            background: #222; 
+            color: white; 
+            padding: 20px; 
+            position: fixed; 
+            bottom: 30px; 
+            left: 10px; 
+            right: 10px; 
+            border-radius: 15px; 
+            z-index: 9999; 
+            font-size: 16px;
+            border: 1px solid #444;
+            box-shadow: 0px 4px 15px rgba(0,0,0,0.5);
+        }
+    </style>
+</head>
+<body>
+
+    <h1>E-3BPM GESTÃO</h1>
+    <p>Portal Administrativo e Comando</p>
+    
+    <button id="btnInstall">INSTALAR GESTÃO</button>
+
+    <div id="ios-notice">
+        <strong>Para instalar no seu iPhone:</strong><br><br>
+        1. Toque no ícone <strong>Compartilhar</strong> <img src="https://img.icons8.com/ios/20/ffffff/upload.png" style="vertical-align: middle;"> abaixo.<br>
+        2. Role para baixo e toque em <strong>"Adicionar à Tela de Início"</strong>.
+    </div>
+
+    <script>
+        // COLOQUE AQUI O LINK DO GOOGLE SITES DA GESTÃO
+        const urlDestino = "https://sites.google.com/view/3bpmgestao/início"; 
+
+        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+        
+        if (isStandalone) {
+            window.location.href = urlDestino;
+        }
+
+        // Registro do Service Worker específico da gestão
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw-gestao.js')
+                .catch(err => console.log("Erro ao registrar SW Gestão:", err));
+        }
+
+        let deferredPrompt;
+        const btnInstall = document.getElementById('btnInstall');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            btnInstall.style.display = 'inline-block';
+        });
+
+        btnInstall.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    btnInstall.style.display = 'none';
+                }
+                deferredPrompt = null;
+            }
+        });
+
+        window.addEventListener('appinstalled', () => {
+            window.location.href = urlDestino;
+        });
+
+        const isIos = () => {
+            const userAgent = window.navigator.userAgent.toLowerCase();
+            return /iphone|ipad|ipod/.test(userAgent);
+        }
+
+        if (isIos() && !isStandalone) {
+            document.getElementById('ios-notice').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
